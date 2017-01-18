@@ -1,8 +1,14 @@
 # Imperium
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/imperium`. To experiment with that code, run `bin/console` for an interactive prompt.
+Imperium is a Latin word which roughly translates to 'power to command'. It was
+often applied to official, and unofficial, positions of power. In this case,
+specifically the office of Consul.
 
-TODO: Delete this and the text above, and describe your gem
+Imperium is a Consul client for Ruby applications, it aims to be as ergonomic
+as possible for users while giving the flexibility required for complex
+applications. At first only the KV store will be supported but additional
+functionality is expected to be added as needed (or as pull requests are
+submitted).
 
 ## Installation
 
@@ -22,7 +28,27 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Configure:
+
+```
+Imperium.configure do |config|
+  # set values here
+end
+```
+
+Access KV store:
+```
+# Get a single value
+Imperium::KV.get('config/single-value', :stale) #=> 'qux'
+
+# Get a set of nested values
+Imperium::KV.get('config/complex-value', :recurse) # => {first: 'value', second: 'value'}
+
+# Requesting a set of nested values without the :recurse option
+Imperium::KV.get('config/complex-value', :recurse) # => nil
+# or, depending on config
+Imperium::KV.get('config/complex-value', :recurse) # => raise Imperium::KV::NotFound
+```
 
 ## Development
 
