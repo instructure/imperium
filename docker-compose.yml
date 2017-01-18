@@ -1,0 +1,16 @@
+version: "2"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.ci
+    links:
+      - consul
+
+  consul:
+    image: consul:0.7.2
+    command: agent -dev -client 0.0.0.0 -datacenter imperium-dev -node imperium-consul -bootstrap
+    environment:
+      GOMAXPROCS: "2"
+      VIRTUAL_PORT: 8500

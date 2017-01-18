@@ -7,3 +7,5 @@
 /pkg/
 /spec/reports/
 /tmp/
+
+docker-compose.override.yml
