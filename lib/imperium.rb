@@ -1,5 +1,12 @@
-require "imperium/version"
+require 'imperium/configuration'
+require 'imperium/version'
 
 module Imperium
-  # Your code goes here...
+  def self.configure
+    yield configuration
+  end
+
+  def self.configuration
+    @configuration ||= Configuration.new
+  end
 end
