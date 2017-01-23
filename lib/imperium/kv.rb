@@ -11,13 +11,9 @@ module Imperium
     end
 
     def get(key, *options)
-      # build url
-      #   build path
-      #   build query from options && config
-      #
-      # make request
-      # parse request
-      # manipulate into hash or String
+      response = @http_client.get(prefix_path(key))
+      parsed_body = JSON.parse(response.body)
+      Base64.decode64(parsed_body.first['Value'])
     end
 
     def put(key, value, *_)

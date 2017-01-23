@@ -1,3 +1,6 @@
+require 'base64'
+require 'json'
+
 module Imperium
   class Client
     class << self

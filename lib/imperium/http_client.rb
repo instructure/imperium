@@ -1,5 +1,4 @@
-require 'httpclient' # From HTTPClient
-require 'json'
+require 'httpclient'
 
 module Imperium
   class HTTPClient
@@ -19,13 +18,19 @@ module Imperium
     def delete(path)
       url = config.url.dup
       url.path = path
-      http_driver.delete(url.to_s)
+      http_driver.delete(url)
+    end
+
+    def get(path)
+      url = config.url.dup
+      url.path = path
+      http_driver.get(url)
     end
 
     def put(path, value)
       url = config.url.dup
       url.path = path
-      http_driver.put(url.to_s, body: value)
+      http_driver.put(url, body: value)
     end
 
     private

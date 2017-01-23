@@ -19,7 +19,7 @@ RSpec.describe 'KV store working w/ a real consul instance', :integration do
     WebMock.enable!
   end
 
-  let(:client ) { Imperium::KV.default_client }
+  let(:client) { Imperium::KV.default_client }
 
   describe 'PUTting keys' do
     let(:key) { 'imperium-tests/foo/bar' }
@@ -43,7 +43,21 @@ RSpec.describe 'KV store working w/ a real consul instance', :integration do
   end
 
   describe 'GETting keys' do
-    it 'is on the TODO list'
+
+    before(:all) do
+      Imperium::KV.default_client.put('imperium-tests/foo/bar', 'baz')
+    end
+
+    after(:all) do
+      Imperium::KV.default_client.delete('imperium-tests/foo/bar')
+    end
+
+    it 'must get a single value' do
+      expect(client.get('imperium-tests/foo/bar')).to eq 'baz'
+    end
+
+    it 'must get multiple values'
+    it 'must deeply nested values'
   end
 
   describe 'DELETing keys' do
