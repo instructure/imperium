@@ -7,6 +7,10 @@ services:
       dockerfile: Dockerfile.ci
     links:
       - consul
+    environment:
+      IMPERIUM_CONSUL_HOST: "consul"
+      IMPERIUM_CONSUL_PORT: 8500
+      IMPERIUM_CONSUL_SSL: "false"
 
   consul:
     image: consul:0.7.2

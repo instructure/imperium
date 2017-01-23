@@ -1,4 +1,6 @@
 $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
+require 'webmock/rspec'
+
 require "imperium"
 
 RSpec.configure do |config|
@@ -13,6 +15,7 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 
+  config.filter_run_excluding(:integration) unless ENV['IMPERIUM_CONSUL_HOST']
   config.filter_run :focus
   config.run_all_when_everything_filtered = true
 

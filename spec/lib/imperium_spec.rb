@@ -13,6 +13,11 @@ RSpec.describe Imperium do
         expect(config).to eq Imperium.configuration
       end
     end
+
+    it 'must call reset_default_clients on Imperium::Client' do
+      expect(Imperium::Client).to receive(:reset_default_clients)
+      Imperium.configure {|config| }
+    end
   end
 
   describe '.configuration' do
