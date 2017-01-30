@@ -45,6 +45,23 @@ RSpec.describe Imperium::Configuration do
     expect(config.url.port).to eq 1234
   end
 
+  describe '#token?' do
+    it 'must return false when the token is an empty string' do
+      config.token = ''
+      expect(config).to_not be_token
+    end
+
+    it 'must return false when the token is nil' do
+      config.token = nil
+      expect(config).to_not be_token
+    end
+
+    it 'must return true when a token is set' do
+      config.token = 'super-sekret-token'
+      expect(config).to be_token
+    end
+  end
+
   describe '#url=(value)' do
     it 'must nil out the URL when passed nil' do
       config.url = nil
@@ -65,6 +82,16 @@ RSpec.describe Imperium::Configuration do
       config.url = URI.parse('https://foo.example.com')
       expect(config.url).to be_a Addressable::URI
       expect(config.url).to eq Addressable::URI.parse('https://foo.example.com')
+    end
+
+    it 'must append a trailing slash when there is not one on the path component' do
+      config.url = 'http://consul.example.com/namespace'
+      expect(config.url.path).to eq '/namespace/'
+    end
+
+    it 'must not append a trailing slash when there is already one present on the path component' do
+      config.url = 'http://consul.example.com/namespace/'
+      expect(config.url.path).to eq '/namespace/'
     end
   end
 

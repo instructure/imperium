@@ -8,7 +8,7 @@ RSpec.describe 'KV store working w/ a real consul instance', :integration do
       config.ssl = ENV['IMPERIUM_CONSUL_SSL'] == 'true'
       config.token = ENV['IMPERIUM_CONSUL_TOKEN']
     end
-    WebMock.disable!
+    WebMock.allow_net_connect!
   end
 
   after(:all) do
@@ -16,7 +16,7 @@ RSpec.describe 'KV store working w/ a real consul instance', :integration do
       config.url = 'http://localhost:8500'
       config.token = nil
     end
-    WebMock.enable!
+    WebMock.disable_net_connect!
   end
 
   let(:client) { Imperium::KV.default_client }
@@ -43,21 +43,30 @@ RSpec.describe 'KV store working w/ a real consul instance', :integration do
   end
 
   describe 'GETting keys' do
-
     before(:all) do
       Imperium::KV.default_client.put('imperium-tests/foo/bar', 'baz')
+
+      # Single depth nesting of keys
+      Imperium::KV.default_client.put('imperium-tests/nested/one', 'Nothing wrong with me')
+      Imperium::KV.default_client.put('imperium-tests/nested/two', "Something's got to give")
     end
 
     after(:all) do
       Imperium::KV.default_client.delete('imperium-tests/foo/bar')
+      Imperium::KV.default_client.delete('imperium-tests/nested/one')
+      Imperium::KV.default_client.delete('imperium-tests/nested/two')
     end
 
     it 'must get a single value' do
-      expect(client.get('imperium-tests/foo/bar')).to eq 'baz'
+      expect(client.get('imperium-tests/foo/bar').values).to eq 'baz'
     end
 
-    it 'must get multiple values'
-    it 'must deeply nested values'
+    it 'must get multiple values' do
+      expect(client.get('imperium-tests/nested', :recurse).values).to eq({
+        'one' => 'Nothing wrong with me',
+        'two' => "Something's got to give"
+      })
+    end
   end
 
   describe 'DELETing keys' do

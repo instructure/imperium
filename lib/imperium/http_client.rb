@@ -3,7 +3,6 @@ require 'httpclient'
 module Imperium
   class HTTPClient
     class << self
-      private
       def http_driver
         @http_driver ||= ::HTTPClient.new
       end
@@ -16,25 +15,33 @@ module Imperium
     end
 
     def delete(path)
-      url = config.url.dup
-      url.path = path
+      url = config.url.join(path)
       http_driver.delete(url)
     end
 
-    def get(path)
-      url = config.url.dup
-      url.path = path
-      http_driver.get(url)
+    def get(path, query: {})
+      url = config.url.join(path)
+      url.query_values = query
+      http_driver.get(url, header: build_request_headers)
     end
 
     def put(path, value)
-      url = config.url.dup
-      url.path = path
+      url = config.url.join(path)
       http_driver.put(url, body: value)
     end
 
     private
 
-    define_method :http_driver, &method(:http_driver)
+    def build_request_headers
+      if config.token?
+        {'X-Consul-Token' => config.token}
+      else
+        {}
+      end
+    end
+
+    def http_driver
+      self.class.http_driver
+    end
   end
 end

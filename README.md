@@ -10,6 +10,13 @@ applications. At first only the KV store will be supported but additional
 functionality is expected to be added as needed (or as pull requests are
 submitted).
 
+## Motivation.
+As Instructure's use of Consul has grown so have our wants and needs in a client
+library have grown. The goal of this gem is to provide a lightweight, thread
+safe interface to the full power of Consul's API while not forcing the consumer
+to use all of it where unnecessary. For now we're focusing on the KV store since
+most of our use revolves around it.
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -31,32 +38,53 @@ Or install it yourself as:
 Configure:
 
 ```
+# The following configuration values are used for the default client for each
+# service. This isn't the only way to get a client set up but will fill the
+# needs of most applications.
 Imperium.configure do |config|
-  # set values here
+  # Connection values can be specified separately
+  config.host = 'consul.example.com'
+  config.port = 8585 
+  config.ssl = false
+
+  # Or, as a url (this is equivilant to the example above).
+  config.url = 'http://consul.example.com:8585'
+
+  confg.token = 'super-sekret-value'
 end
+
+# If you want a client that uses some other configuration values without altering
+# the default ones you can directly instantiate a Configuration object:
+
+config = Imperium::Configuration.new(url: 'https://other-consul.example.com', token: 'foobar')
+# This client will contact other-consul.example.com rather than the one configured above.
+kv_client = Imperium::KV.new(config) 
 ```
 
-Access KV store:
+GET values from the KV store:
 ```
 # Get a single value
-Imperium::KV.get('config/single-value', :stale) #=> 'qux'
+response = Imperium::KV.get('config/single-value', :stale) 
+response.values # => 'qux'
 
 # Get a set of nested values
-Imperium::KV.get('config/complex-value', :recurse) # => {first: 'value', second: 'value'}
-
-# Requesting a set of nested values without the :recurse option
-Imperium::KV.get('config/complex-value', :recurse) # => nil
-# or, depending on config
-Imperium::KV.get('config/complex-value', :recurse) # => raise Imperium::KV::NotFound
+response = Imperium::KV.get('config/complex-value', :recurse) 
+response.values # => {first: 'value', second: 'value'}
 ```
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies. Then, run
+`bin/rspec` to run the tests. You can also run `bin/console` for an interactive
+prompt that will allow you to experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+To install this gem onto your local machine, run `bundle exec rake install`.
+To release a new version, update the version number in `version.rb`, and then
+run `bundle exec rake release`, which will create a git tag for the version,
+push git commits and tags, and push the `.gem` file to
+[rubygems.org](https://rubygems.org).
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/imperium.
-
+Bug reports and pull requests are welcome on GitHub at
+https://github.com/instructure/imperium.

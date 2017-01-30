@@ -38,6 +38,19 @@ module Imperium
 
     private
 
+    def extract_query_params(full_options, allowed_params: :all)
+      if full_options.key?(:consistent) && full_options.key?(:stale)
+        raise InvalidConsistencySpecification, 'Both consistency modes (consistent, stale) supplied, this is not allowed by the HTTP API'
+      end
+      allowed_params == :all ? full_options : full_options.select { |k, _| allowed_params.include?(k.to_sym) }
+    end
+
+    def hashify_options(options_array)
+      options_array.inject({}) { |hash, value|
+        value.is_a?(Hash) ? hash.merge(value) : hash.merge(value.to_sym => nil)
+      }
+    end
+
     def prefix_path(main_path, prefix = self.path_prefix)
       "#{prefix}/#{main_path}"
     end
