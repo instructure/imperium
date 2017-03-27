@@ -45,6 +45,33 @@ RSpec.describe Imperium::Configuration do
     expect(config.url.port).to eq 1234
   end
 
+  it 'must have accessors for connect_timeout' do
+    expect(config).to respond_to :connect_timeout
+    expect(config).to respond_to :connect_timeout=
+  end
+
+  it 'must default connect_timeout to 5 seconds' do
+    expect(config.connect_timeout).to eq 5
+  end
+
+  it 'must have accessors for send_timeout' do
+    expect(config).to respond_to :send_timeout
+    expect(config).to respond_to :send_timeout=
+  end
+
+  it 'must default send_timeout to 15 seconds' do
+    expect(config.send_timeout).to eq 15
+  end
+
+  it 'must have accessors for receive_timeout' do
+    expect(config).to respond_to :receive_timeout
+    expect(config).to respond_to :receive_timeout=
+  end
+
+  it 'must default receive_timeout to 60 seconds' do
+    expect(config.receive_timeout).to eq 60
+  end
+
   describe '#token?' do
     it 'must return false when the token is an empty string' do
       config.token = ''

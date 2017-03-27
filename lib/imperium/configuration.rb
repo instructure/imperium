@@ -5,6 +5,16 @@ module Imperium
   # The Configuration class represents the values necessary for making contact
   # with a Consul agent.
   #
+  # @!attribute [rw] connect_timeout
+  #   @return [Integer] The number of seconds to wait for a connection to Consul
+  #   to open before failing, default: 5
+  # @!attribute [rw] receive_timeout
+  #   @return [Integer] The number of seconds to wait for a response from Consul
+  #   to open before failing, default: 60. This default is quite high in order to
+  #   support long polling.
+  # @!attribute [rw] send_timeout
+  #   @return [Integer] The number of seconds to wait for the request body to
+  #   finish uploading to Consul to open before failing, default: 15.
   # @!attribute [rw] token
   #   @return [String] The token to be used when making requests to the Consul
   #   APIs. Defaults to `nil`
@@ -15,10 +25,13 @@ module Imperium
     extend Forwardable
 
     attr_reader :url
-    attr_accessor :token
+    attr_accessor :connect_timeout, :receive_timeout, :send_timeout, :token
 
     def initialize(url: 'http://localhost:8500', token: nil)
       @url = Addressable::URI.parse(url)
+      @connect_timeout = 5
+      @send_timeout = 15
+      @receive_timeout = 60
       @token = token
     end
 

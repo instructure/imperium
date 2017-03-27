@@ -6,6 +6,9 @@ RSpec.describe Imperium::KV do
   let(:kv_client) { Imperium::KV.new(config) }
 
   before do
+    allow(config).to receive(:connect_timeout).and_return(5)
+    allow(config).to receive(:send_timeout).and_return(5)
+    allow(config).to receive(:receive_timeout).and_return(5)
     kv_client.instance_variable_set(:@http_client, http_client)
   end
 

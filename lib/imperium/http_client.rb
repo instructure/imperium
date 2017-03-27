@@ -2,32 +2,30 @@ require 'httpclient'
 
 module Imperium
   class HTTPClient
-    class << self
-      def http_driver
-        @http_driver ||= ::HTTPClient.new
-      end
-    end
-
     attr_reader :config
 
     def initialize(config)
       @config = config
+      @driver = ::HTTPClient.new
+      @driver.connect_timeout = @config.connect_timeout
+      @driver.send_timeout = @config.send_timeout
+      @driver.receive_timeout = @config.receive_timeout
     end
 
     def delete(path)
       url = config.url.join(path)
-      http_driver.delete(url)
+      @driver.delete(url)
     end
 
     def get(path, query: {})
       url = config.url.join(path)
       url.query_values = query
-      http_driver.get(url, header: build_request_headers)
+      @driver.get(url, header: build_request_headers)
     end
 
     def put(path, value)
       url = config.url.join(path)
-      http_driver.put(url, body: value)
+      @driver.put(url, body: value)
     end
 
     private
@@ -38,10 +36,6 @@ module Imperium
       else
         {}
       end
-    end
-
-    def http_driver
-      self.class.http_driver
     end
   end
 end
