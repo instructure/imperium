@@ -11,7 +11,8 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{A powerful, easy to use, Consul client}
   spec.description   = %q{A powerful, easy to use, Consul client}
-  spec.homepage      = 'https://github.com/????/imperium'
+  spec.homepage      = 'https://github.com/instructure/imperium'
+  spec.license       = 'MIT'
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
