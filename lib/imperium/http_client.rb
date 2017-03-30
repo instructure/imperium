@@ -13,19 +13,25 @@ module Imperium
     end
 
     def delete(path)
-      url = config.url.join(path)
-      @driver.delete(url)
+      wrapping_timeouts do
+        url = config.url.join(path)
+        @driver.delete(url)
+      end
     end
 
     def get(path, query: {})
-      url = config.url.join(path)
-      url.query_values = query
-      @driver.get(url, header: build_request_headers)
+      wrapping_timeouts do
+        url = config.url.join(path)
+        url.query_values = query
+        @driver.get(url, header: build_request_headers)
+      end
     end
 
     def put(path, value)
-      url = config.url.join(path)
-      @driver.put(url, body: value)
+      wrapping_timeouts do
+        url = config.url.join(path)
+        @driver.put(url, body: value)
+      end
     end
 
     private
@@ -36,6 +42,18 @@ module Imperium
       else
         {}
       end
+    end
+
+    # We're doing this wrap and re-raise dance to give a more consistent set of
+    # exceptions that can come from us.
+    def wrapping_timeouts
+      yield
+    rescue HTTPClient::ConnectTimeout => ex
+      raise Imperium::ConnectTimeout, ex.message
+    rescue HTTPClient::SendTimeout => ex
+      raise Imperium::SendTimeout, ex.message
+    rescue HTTPClient::ReceiveTimeout => ex
+      raise Imperium::ReceiveTimeout, ex.message
     end
   end
 end
