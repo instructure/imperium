@@ -46,5 +46,29 @@ RSpec.describe Imperium::HTTPClient do
       expect(WebMock).to_not have_requested(:get, /consul\.example\.com/).
         with(headers: {'X-Consul-Token' => 'totes-legit'})
     end
+
+    it 'must capture HTTPClient ConnectTimeoutError and reraise our own exception' do
+      driver = client.instance_variable_get(:@driver)
+      expect(driver).to receive(:get).and_raise(HTTPClient::ConnectTimeoutError)
+      expect { client.get(path) }.to raise_error(Imperium::ConnectTimeout)
+    end
+
+    it 'must capture HTTPClient SendTimeoutError and reraise our own exception' do
+      driver = client.instance_variable_get(:@driver)
+      expect(driver).to receive(:get).and_raise(HTTPClient::SendTimeoutError)
+      expect { client.get(path) }.to raise_error(Imperium::SendTimeout)
+    end
+
+    it 'must capture HTTPClient ReceiveTimeoutError and reraise our own exception' do
+      driver = client.instance_variable_get(:@driver)
+      expect(driver).to receive(:get).and_raise(HTTPClient::ReceiveTimeoutError)
+      expect { client.get(path) }.to raise_error(Imperium::ReceiveTimeout)
+    end
+
+    it 'must capture SocketError: getaddrinfo and raise our own exception' do
+      driver = client.instance_variable_get(:@driver)
+      expect(driver).to receive(:get).and_raise(SocketError, 'getaddrinfo: Name or service not known')
+      expect { client.get(path) }.to raise_error(Imperium::UnableToConnectError)
+    end
   end
 end

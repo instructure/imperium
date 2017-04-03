@@ -13,14 +13,14 @@ module Imperium
     end
 
     def delete(path)
-      wrapping_timeouts do
+      wrapping_exceptions do
         url = config.url.join(path)
         @driver.delete(url)
       end
     end
 
     def get(path, query: {})
-      wrapping_timeouts do
+      wrapping_exceptions do
         url = config.url.join(path)
         url.query_values = query
         @driver.get(url, header: build_request_headers)
@@ -28,7 +28,7 @@ module Imperium
     end
 
     def put(path, value)
-      wrapping_timeouts do
+      wrapping_exceptions do
         url = config.url.join(path)
         @driver.put(url, body: value)
       end
@@ -46,13 +46,19 @@ module Imperium
 
     # We're doing this wrap and re-raise dance to give a more consistent set of
     # exceptions that can come from us.
-    def wrapping_timeouts
+    def wrapping_exceptions
       yield
-    rescue HTTPClient::ConnectTimeout => ex
+    rescue SocketError => ex
+      if ex.message.start_with?("getaddrinfo: Name or service not known")
+        raise Imperium::UnableToConnectError, ex.message
+      else
+        raise
+      end
+    rescue ::HTTPClient::ConnectTimeoutError => ex
       raise Imperium::ConnectTimeout, ex.message
-    rescue HTTPClient::SendTimeout => ex
+    rescue ::HTTPClient::SendTimeoutError => ex
       raise Imperium::SendTimeout, ex.message
-    rescue HTTPClient::ReceiveTimeout => ex
+    rescue ::HTTPClient::ReceiveTimeoutError => ex
       raise Imperium::ReceiveTimeout, ex.message
     end
   end

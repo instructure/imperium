@@ -15,4 +15,7 @@ module Imperium
 
   # Raised when the remote server took too long to respond.
   class ReceiveTimeout < TimeoutError; end
+
+  # Raised when we can't open a socket to the specified consul server
+  class UnableToConnectError < SocketError; end
 end
