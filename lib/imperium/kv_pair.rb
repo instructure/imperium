@@ -47,7 +47,7 @@ module Imperium
     #   API response.
     def initialize(attributes = {})
       ATTRIBUTE_MAP.each do |key, attribute_name|
-        send("#{attribute_name}=", attributes[key])
+        send("#{attribute_name}=", attributes[key]) if attributes[key]
       end
     end
 
@@ -60,6 +60,7 @@ module Imperium
     #
     # @param value [String] The base64 encoded value from the response.
     def value=(value)
+      return @value = nil if value.nil?
       @value = Base64.decode64 value
     end
   end
