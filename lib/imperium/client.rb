@@ -3,6 +3,9 @@ require 'json'
 
 module Imperium
   class Client
+    # Options that are allowed for all API endpoints
+    UNIVERSAL_API_OPTIONS = %i{dc}.freeze
+
     class << self
       attr_reader :subclasses
       attr_accessor :path_prefix
@@ -42,7 +45,11 @@ module Imperium
       if full_options.key?(:consistent) && full_options.key?(:stale)
         raise InvalidConsistencySpecification, 'Both consistency modes (consistent, stale) supplied, this is not allowed by the HTTP API'
       end
-      allowed_params == :all ? full_options : full_options.select { |k, _| allowed_params.include?(k.to_sym) }
+      allowed_params == :all ?
+        full_options :
+        full_options.select { |k, _|
+          allowed_params.include?(k.to_sym) || UNIVERSAL_API_OPTIONS.include?(k.to_sym)
+        }
     end
 
     def hashify_options(options_array)

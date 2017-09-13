@@ -1,3 +1,4 @@
+require 'socket'
 
 module Imperium
   class Error < StandardError; end

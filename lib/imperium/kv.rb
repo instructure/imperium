@@ -9,6 +9,12 @@ module Imperium
       default_client.get(key, *options)
     end
 
+    # {#put Create or update} a key using the {.default_client}
+    # @see #put
+    def self.put(key, value, *options)
+      default_client.put(key, value, *options)
+    end
+
     # Delete the specified key
     # @note This is really a stub of this method, it will delete the key but
     #   you'll get back a raw
@@ -27,6 +33,10 @@ module Imperium
 
     GET_ALLOWED_OPTIONS = %i{consistent stale recurse keys separator raw}.freeze
     private_constant :GET_ALLOWED_OPTIONS
+
+    PUT_ALLOWED_OPTIONS = %i{flags cas acquire release}.freeze
+    private_constant :PUT_ALLOWED_OPTIONS
+
     # Get the specified key/prefix using the supplied options.
     #
     # @example Fetching a key that is allowed to be stale.
@@ -40,6 +50,7 @@ module Imperium
     # @param [String] key The key/prefix to be fetched from Consul.
     # @param [Array<Symbol,String,Hash>] options The options for constructing
     #   the request
+    # @option options [String] :dc Specify the datacenter to use for the request
     # @option options [Symbol] :consistent Specify the consistent option to the
     #   API resulting in the most up to date value possible at the expense of a
     #   bit of latency and the requirement of a validly elected leader. See
@@ -62,20 +73,42 @@ module Imperium
     end
 
     # Update or create the specified key
-    # @note This is really a stub of this method, it will put the key but
-    #   you'll get back a raw
-    #   {http://www.rubydoc.info/gems/httpclient/HTTP/Message HTTP::Message}
-    #   object. If you're really serious about using this we'll probably want
-    #   to build a wrapper around the response with some logic to simplify
-    #   interpreting the response.
     #
     # @param key [String] The key to be created or updated.
     # @param value [String] The value to be set on the key.
-    # @param options [Array] Un-used, only here to prevent changing the method
-    #   signature when we actually implement more advanced functionality.
-    # @return [HTTP::Message]
+    # @param [Array<Symbol,String,Hash>] options The options for constructing
+    #   the request
+    # @option options [String] :dc Specify the datacenter to use for the request
+    # @option options [Integer] :flags Specifies an unsigned value
+    #   between 0 and (2^64)-1. Clients can choose to use this however makes
+    #   sense for their application.
+    # @option options [Integer] :cas Specifies to use a Check-And-Set operation.
+    #   This is very useful as a building block for more complex synchronization
+    #   primitives. If the index is 0, Consul will only put the key if it does
+    #   not already exist. If the index is non-zero, the key is only set if the
+    #   index matches the ModifyIndex of that key.
+    # @option options [String] :acquire Supply a session key for use in
+    #   acquiring lock on the key. From the Consul docs: Specifies to use a lock
+    #   acquisition operation. This is useful as it allows leader election to be
+    #   built on top of Consul. If the lock is not held and the session is
+    #   valid, this increments the LockIndex and sets the Session value of the
+    #   key in addition to updating the key contents. A key does not need to
+    #   exist to be acquired. If the lock is already held by the given session,
+    #   then the LockIndex is not incremented but the key contents are updated.
+    #   This lets the current lock holder update the key contents without having
+    #   to give up the lock and reacquire it.
+    # @option options [String] :release Supply a session key for releasing a
+    #   lock. From the Consul docs: Specifies to use a lock release operation.
+    #   This is useful when paired with ?acquire= as it allows clients to yield
+    #   a lock. This will leave the LockIndex unmodified but will clear the
+    #   associated Session of the key. The key must be held by this session to
+    #   be unlocked.
+    # @return [KVPUTResponse]
     def put(key, value, *options)
-      @http_client.put(prefix_path(key), value)
+      expanded_options = hashify_options(options)
+      query_params = extract_query_params(expanded_options, allowed_params: PUT_ALLOWED_OPTIONS)
+      response = @http_client.put(prefix_path(key), value, query: query_params)
+      KVPUTResponse.new(response, options: expanded_options)
     end
 
     private

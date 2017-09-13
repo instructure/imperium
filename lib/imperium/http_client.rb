@@ -27,9 +27,10 @@ module Imperium
       end
     end
 
-    def put(path, value)
+    def put(path, value, query: {})
       wrapping_exceptions do
         url = config.url.join(path)
+        url.query_values = query
         @driver.put(url, body: value)
       end
     end

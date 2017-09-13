@@ -5,6 +5,9 @@ RSpec.describe Imperium::KV do
   let(:http_client) { double(Imperium::HTTPClient) }
   let(:kv_client) { Imperium::KV.new(config) }
 
+  let(:key) { 'foo/bar' }
+  let(:value) { 'baz' }
+
   before do
     allow(config).to receive(:connect_timeout).and_return(5)
     allow(config).to receive(:send_timeout).and_return(5)
@@ -13,15 +16,13 @@ RSpec.describe Imperium::KV do
   end
 
   describe '#get(key, *options)' do
-    let(:key) { 'foo/bar' }
-    let(:value) { 'baz' }
     let(:response) {
       double(HTTP::Message).tap { |resp| allow(resp).to receive_messages({body: response_body}) }
     }
     let(:response_body) {[
       {
         "LockIndex" => 0,
-        "Key" => "foo/bar",
+        "Key" => key,
         "Flags" => 0,
         "Value" => Base64.encode64(value),
         "CreateIndex" => 657,
@@ -64,18 +65,42 @@ RSpec.describe Imperium::KV do
     end
 
     it 'must return a KVGETResponse object' do
-      response = kv_client.get('foo/bar')
+      response = kv_client.get(key)
       expect(response).to be_a Imperium::KVGETResponse
     end
 
     it 'must pass on the requested key as the prefix attribute on the response' do
-      response = kv_client.get('foo/bar')
+      response = kv_client.get(key)
       expect(response.prefix).to eq key
     end
 
     it 'must pass on the expanded options hash to the response object' do
-      response = kv_client.get('foo/bar', :recurse)
+      response = kv_client.get(key, :recurse)
       expect(response.options).to include recurse: nil
+    end
+  end
+
+  describe '#put(key, value *options)' do
+    let(:response) {
+      double(HTTP::Message).tap { |resp| allow(resp).to receive_messages({body: response_body}) }
+    }
+    let(:response_body) { "true" }
+
+    before do
+      allow(http_client).to receive(:put)
+        .with("v1/kv/#{key}", value, an_instance_of(Hash))
+        .and_return(response)
+    end
+
+    it 'must add the v1/kv prefix to the key and pass it to the http client as the path' do
+      kv_client.put(key, value)
+      expect(http_client).to have_received(:put).
+        with("v1/kv/#{key}", value, an_instance_of(Hash))
+    end
+
+    it 'must return a KVPUTResponse object' do
+      response = kv_client.put(key, value)
+      expect(response).to be_a Imperium::KVPUTResponse
     end
   end
 end
