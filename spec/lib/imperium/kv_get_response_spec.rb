@@ -39,7 +39,10 @@ RSpec.describe Imperium::KVGETResponse do
 
   describe '#values' do
     let(:deeply_nested_response) {[
+      {"LockIndex" => 0, "Key" => "foo/bar", "Flags" => 0, "Value" => Base64.encode64('toor'), "CreateIndex" => 657, "ModifyIndex" => 657},
+      {"LockIndex" => 0, "Key" => "foo/bar/baz", "Flags" => 0, "Value" => Base64.encode64('toor_zab'), "CreateIndex" => 657, "ModifyIndex" => 657},
       {"LockIndex" => 0, "Key" => "foo/bar/baz/first", "Flags" => 0, "Value" => Base64.encode64('qux'), "CreateIndex" => 657, "ModifyIndex" => 657},
+      {"LockIndex" => 0, "Key" => "foo/bar/baz/second", "Flags" => 0, "Value" => Base64.encode64('bah'), "CreateIndex" => 657, "ModifyIndex" => 657},
       {"LockIndex" => 0, "Key" => "foo/bar/baz/second/deep", "Flags" => 0, "Value" => Base64.encode64('purple'), "CreateIndex" => 657, "ModifyIndex" => 657},
     ].to_json}
 
@@ -82,12 +85,27 @@ RSpec.describe Imperium::KVGETResponse do
         expect(response.values).to eq({'foo' => {'bar' => 'baz'}})
       end
 
+      it 'must place a __root__ key when there is a value at the prefix along with nested values' do
+        message.body << deeply_nested_response
+        expect(response.values).to include({
+          nil => 'toor'
+        })
+      end
+
+      it 'must add a __root__ key to the hash of nested values when' do
+        message.body << deeply_nested_response
+        expect(response.values['baz']).to include({
+          nil => 'toor_zab'
+        })
+      end
+
       it 'must return a nested hash when many values are returned' do
         message.body << deeply_nested_response
-        expect(response.values).to eq({
+        expect(response.values).to include({
           'baz' => {
+            nil => 'toor_zab',
             'first' => 'qux',
-            'second' => {'deep' => 'purple'}
+            'second' => {nil => 'bah', 'deep' => 'purple'},
           }
         })
       end

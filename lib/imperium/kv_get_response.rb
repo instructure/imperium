@@ -38,16 +38,24 @@ module Imperium
     end
 
     MERGING_FUNC = -> (_, old, new) {
-      if old.is_a?(Hash) && new.is_a?(Hash)
+      old_is_hash = old.is_a?(Hash)
+      new_is_hash = new.is_a?(Hash)
+      if old_is_hash && new_is_hash
         old.merge(new, &MERGING_FUNC)
+      elsif new_is_hash
+        new.merge(nil => old)
       else
-        new
+        old.merge(nil => new)
       end
     }
     private_constant :MERGING_FUNC
 
     # Extracts the values from the response and smashes them into a simple
     # object depending on options provided on the request.
+    #
+    # If a value exists exactly at the prefix or exactly at a nested prefix
+    # with additional nested values the hash representing the nested values
+    # will have a `nil` key added to contain the un-nested value.
     #
     # @example A nested hash constructed from recursively found values
     #   # Given a response including the following values (metadata ommitted for clarity):
@@ -58,6 +66,18 @@ module Imperium
     #   response = Imperium::KV.get('foo/bar/baz', :recurse)
     #   response.values # => {'first' => 'qux', 'second' => {'deep' => 'purple'}}
     #
+    # @example A nested hash constructed from recusively found values and repeated keys
+    #   # Given a response including the following values (metadata ommitted for clarity):
+    #   # [
+    #   #   {"Key" => "foo/bar", "Value" => "b25l\n"},
+    #   #   {"Key" => "foo/bar/baz", "Value" => "dHdv\n"}
+    #   #   {"Key" => "foo/bar/baz/qux", "Value" => "dGhyZWU=\n"}
+    #   # ]
+    #   response = Imperium::KV.get('foo/bar', :recurse)
+    #   response.values # => {
+    #     nil => 'one',
+    #     'baz' => {nil => 'two', qux' => 'three'},
+    #   }
     # @return [String] When the matching key is found without the `recurse`
     #   option as well as when a single value is found with the recurse option
     #   and the key exactly matches the prefix.
@@ -74,12 +94,7 @@ module Imperium
           found_objects.first.value
         else
           found_objects.inject({}) do |hash, obj|
-            if prefix.empty?
-              unprefixed_key = obj.key
-            else
-              unprefixed_key = obj.key[prefix.length + 1..-1]
-            end
-            key_parts = unprefixed_key.split('/')
+            key_parts = extract_key_parts(obj.key)
             hash.merge(construct_nested_hash(key_parts, obj.value), &MERGING_FUNC)
           end
         end
@@ -96,6 +111,20 @@ module Imperium
         {key => value}
       else
         {key => construct_nested_hash(key_parts, value)}
+      end
+    end
+
+    def extract_key_parts(key)
+      unprefixed_key = remove_prefix(key)
+      (unprefixed_key.nil? ? [nil] : unprefixed_key.split('/'))
+    end
+
+    def remove_prefix(key)
+      prefix.empty? ? key : key[(prefix.length + 1)..-1]
+      if prefix.empty?
+        unprefixed_key = key
+      else
+        unprefixed_key = key[prefix.length + 1..-1]
       end
     end
   end
