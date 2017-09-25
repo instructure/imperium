@@ -44,7 +44,7 @@ module Imperium
     private
 
     def parsed_body
-      JSON.parse(content)
+      @parsed_body ||= JSON.parse(content)
     end
   end
 end

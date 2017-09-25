@@ -4,7 +4,7 @@ require 'net/http'
 RSpec.describe 'KV store working w/ a real consul instance', :integration do
   before(:all) do
     Imperium.configure do |config|
-      config.url = "http://#{ENV.fetch('IMPERIUM_CONSUL_HOST')}:#{ENV.fetch('IMPERIUM_CONSUL_PORT')}"
+      config.url = "http://#{ENV.fetch('IMPERIUM_CONSUL_HOST')}:#{ENV.fetch('IMPERIUM_CONSUL_PORT', 8500)}"
       config.ssl = ENV['IMPERIUM_CONSUL_SSL'] == 'true'
       config.token = ENV['IMPERIUM_CONSUL_TOKEN']
     end
