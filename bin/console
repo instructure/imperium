@@ -10,5 +10,11 @@ require "imperium"
 # require "pry"
 # Pry.start
 
+Imperium.configure do |conf|
+  conf.host = ENV.fetch('IMPERIUM_CONSUL_HOST', 'localhost')
+  conf.port = Integer(ENV.fetch('IMPERIUM_CONSUL_PORT', 8500))
+  conf.ssl = ENV.fetch('IMPERIUM_CONSUL_SSL', 'false') == 'true'
+end
+
 require "irb"
 IRB.start

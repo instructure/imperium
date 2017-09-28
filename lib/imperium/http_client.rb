@@ -31,7 +31,11 @@ module Imperium
       wrapping_exceptions do
         url = config.url.join(path)
         url.query_values = query
-        @driver.put(url, body: value)
+        if value.is_a?(String)
+          @driver.put(url, body: value)
+        else
+          @driver.put(url, body: JSON.generate(value))
+        end
       end
     end
 

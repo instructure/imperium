@@ -1,3 +1,4 @@
+require_relative 'api_object'
 require 'base64'
 
 module Imperium
@@ -24,8 +25,8 @@ module Imperium
   # @!attribute [rw] modify_index
   #   @return [Integer] The internal index value representing when the entry
   #     was last updated.
-  class KVPair
-    ATTRIBUTE_MAP = {
+  class KVPair < APIObject
+    self.attribute_map = {
       'LockIndex' => :lock_index,
       'Session' => :session,
       'Key' => :key,
@@ -34,27 +35,6 @@ module Imperium
       'CreateIndex' => :create_index,
       'ModifyIndex' => :modify_index,
     }.freeze
-    private_constant :ATTRIBUTE_MAP
-
-    ATTRIBUTE_NAMES = ATTRIBUTE_MAP.values
-    private_constant :ATTRIBUTE_NAMES
-
-    attr_accessor *ATTRIBUTE_NAMES
-
-    # Initialize a {KVPair}
-    #
-    # @param attributes [Hash] The attributes for this object as parsed from the
-    #   API response.
-    def initialize(attributes = {})
-      ATTRIBUTE_MAP.each do |key, attribute_name|
-        send("#{attribute_name}=", attributes[key]) if attributes[key]
-      end
-    end
-
-    def ==(other)
-      return false unless self.class === other
-      ATTRIBUTE_NAMES.all? { |attr| self.send(attr) == other.send(attr )}
-    end
 
     # Capture and base64 decode a value from the api.
     #

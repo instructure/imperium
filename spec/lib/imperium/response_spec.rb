@@ -40,4 +40,32 @@ RSpec.describe Imperium::Response do
       expect(response.translate_addresses?).to eq false
     end
   end
+
+  describe '#coerced_body' do
+    let(:klass) { Class.new(Imperium::APIObject) { self.attribute_map = {'Foo' => :foo} } }
+
+    it 'must return the parsed body when no response_object_class is specified' do
+      message = HTTP::Message.new_response({foo: 'bar'}.to_json)
+      local_response = Imperium::Response.new(message)
+      expect(local_response.coerced_body).to eq "foo" => "bar"
+    end
+
+    it 'must coerce an array of objects into the specified type' do
+      message = HTTP::Message.new_response([{Foo: 'bar'}, {Foo: 'baz'}].to_json)
+      local_response = Imperium::Response.new(message, response_object_class: klass)
+      expect(local_response.coerced_body).to be_a(Array)
+      expect(local_response.coerced_body).to all(be_a(klass))
+    end
+
+    it 'must coerce a hash of objects in to the specified type maintaining the hash structure' do
+      local_message = HTTP::Message.new_response({
+        bar: {'Foo' => 'bar'},
+        baz: {'Foo' => 'baz'},
+      }.to_json)
+      local_response = Imperium::Response.new(local_message, response_object_class: klass)
+      expect(local_response.coerced_body).to be_a(Hash)
+      expect(local_response.coerced_body['bar']).to be_a(klass)
+      expect(local_response.coerced_body['baz']).to be_a(klass)
+    end
+  end
 end

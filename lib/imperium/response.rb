@@ -8,6 +8,26 @@ module Imperium
   # It exposes, through a convenient API, headers common to all interactions
   # with the Consul HTTP API
   class Response < SimpleDelegator
+    include Enumerable
+
+    class << self
+      attr_accessor :default_response_object_class
+    end
+
+    # Construct a new response
+    #
+    # @param response [HTTP::Message] The response as returned from the http client
+    # @param response_object_class [APIObject] The class to coerce values into,
+    #   if left the default (:none) no coersion will be attempted.
+    def initialize(response, response_object_class: :none)
+      super(response)
+      @klass = if response_object_class == :none
+                 self.class.default_response_object_class
+               else
+                 response_object_class
+               end
+    end
+
     # Indicates if the contacted server has a known leader.
     #
     # @return [TrueClass] When the response indicates there is a known leader
@@ -39,6 +59,25 @@ module Imperium
     # @return [FalseClass] When X-Consul-Translate-Addresses is unset
     def translate_addresses?
       headers.key?('X-Consul-Translate-Addresses')
+    end
+
+    # Iterate over the values contained in the structure returned from {#coerced_body}
+    def each(&block)
+      coerced_body.each(&block)
+    end
+
+    # Parse the response JSON and initialize objects using the class passed to the constructor.
+    #
+    # @return [Array<Hash, APIObject>, Hash<String => APIObject>]
+    def coerced_body
+      return parsed_body if @klass == :none || @klass.nil?
+      @coerced_body ||= if parsed_body.is_a?(Array)
+                          parsed_body.map { |attrs| @klass.new(attrs) }
+                        else
+                          parsed_body.each_with_object({}) { |(k, attrs), h|
+                            h[k] = @klass.new(attrs)
+                          }
+                        end
     end
 
     private
