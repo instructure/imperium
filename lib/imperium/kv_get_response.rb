@@ -17,7 +17,7 @@ module Imperium
 
     def initialize(message, options: {}, prefix: '')
       super message
-      @prefix = prefix
+      self.prefix = prefix
       @options = options
     end
 

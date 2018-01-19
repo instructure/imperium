@@ -8,6 +8,20 @@ RSpec.describe Imperium::KVGETResponse do
   }
   let(:single_object_response) { [single_object].to_json }
 
+  let(:two_object_response) { [
+    single_object,
+    {'LockIndex' => 42, 'Session' => 'adf4238a-882b-9ddc-4a9d-5b6758e4159e', 'Key' => 'foo/qux', 'Flags' => 0, 'Value' => Base64.encode64('quux'), 'CreateIndex' => 481, 'ModifyIndex' => 481}
+  ].to_json }
+
+  describe '#initialize' do
+    it 'must handle prefixes with a trailing slash appropriately' do
+      my_response = Imperium::KVGETResponse.new(message, prefix: 'foo/', options: {recurse: true})
+      message.body << two_object_response
+      expect(my_response.prefix).to eq 'foo'
+      expect(my_response.values).to eq 'bar' => 'baz', 'qux' => 'quux'
+    end
+  end
+
   describe '#found_objects' do
     it 'must return nil when only keys are requested' do
       response.options = {keys: true}
