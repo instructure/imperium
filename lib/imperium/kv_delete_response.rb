@@ -1,15 +1,15 @@
 require_relative 'response'
 
 module Imperium
-  # KVPUTResponse is a wrapper for the raw HTTP::Message response from the API
+  # KVDELETEResponse is a wrapper for the raw HTTP::Message response from the API
   #
   # @note This class doesn't really make sense to be instantiated outside of
-  #   {KV#put}
+  #   {KV#delete}
   #
   # @!attribute [rw] options
   #   @return [Hash<Symbol, Object>] The options for the get request after being
   #   coerced from an array to hash.
-  class KVPUTResponse < Response
+  class KVDELETEResponse < Response
     attr_accessor :options
 
     def initialize(message, options: {})

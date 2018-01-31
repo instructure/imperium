@@ -122,4 +122,41 @@ RSpec.describe Imperium::HTTPClient do
         with(headers: {'X-Consul-Token' => 'totes-legit'})
     end
   end
+
+  describe '#delete(path, query: {})' do
+    let(:path) { 'v1/kv/foo/bar' }
+
+    before do
+      stub_request(:delete, /consul\.example\.com/)
+    end
+
+    it 'must use the URL provided by the configuration' do
+      client.delete(path)
+      expect(WebMock).to have_requested(:delete, /\Ahttp:\/\/consul\.example\.com/)
+    end
+
+    it 'must merge the supplied path with the configured url rather than replacing it' do
+      config.url = 'http://consul.example.com/namespace'
+      client.delete(path)
+      expect(WebMock).to have_requested(:delete, /namespace/)
+    end
+
+    it 'must use the supplied path as the path for the url' do
+      client.delete(path)
+      expect(WebMock).to have_requested(:delete, /#{path}\z/)
+    end
+
+    it 'must use the supplied query as the query params encoded appropriately' do
+      client.delete(path, query: {'some_param' => 'val', 'no_value' => nil})
+      expect(WebMock).to have_requested(:delete, /consul\.example\.com/).
+        with(query: hash_including({'some_param' => 'val', 'no_value' => nil}))
+    end
+
+    it 'must include the X-Consul-Token header when the Configuration has a token set' do
+      config.token = 'totes-legit'
+      client.delete(path)
+      expect(WebMock).to have_requested(:delete, /consul\.example\.com/).
+        with(headers: {'X-Consul-Token' => 'totes-legit'})
+    end
+  end
 end

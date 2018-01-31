@@ -15,20 +15,10 @@ module Imperium
       default_client.put(key, value, *options)
     end
 
-    # Delete the specified key
-    # @note This is really a stub of this method, it will delete the key but
-    #   you'll get back a raw
-    #   {http://www.rubydoc.info/gems/httpclient/HTTP/Message HTTP::Message}
-    #   object. If you're really serious about using this we'll probably want
-    #   to build a wrapper around the response with some logic to simplify
-    #   interpreting the response.
-    #
-    # @param key [String] The key to be deleted
-    # @param options [Array] Un-used, only here to prevent changing the method
-    #   signature when we actually implement more advanced functionality.
-    # @return [HTTP::Message]
-    def delete(key, *options)
-      @http_client.delete(prefix_path(key))
+    # {#delete DELETE} a key using the {.default_client}
+    # @see #delete
+    def self.delete(key, *options)
+      default_client.delete(key, *options)
     end
 
     GET_ALLOWED_OPTIONS = %i{consistent stale recurse keys separator raw}.freeze
@@ -36,6 +26,9 @@ module Imperium
 
     PUT_ALLOWED_OPTIONS = %i{flags cas acquire release}.freeze
     private_constant :PUT_ALLOWED_OPTIONS
+
+    DELETE_ALLOWED_OPTIONS = %i{cas}.freeze
+    private_constant :DELETE_ALLOWED_OPTIONS
 
     # Get the specified key/prefix using the supplied options.
     #
@@ -109,6 +102,29 @@ module Imperium
       query_params = extract_query_params(expanded_options, allowed_params: PUT_ALLOWED_OPTIONS)
       response = @http_client.put(prefix_path(key), value, query: query_params)
       KVPUTResponse.new(response, options: expanded_options)
+    end
+
+    # Delete the specified key
+    #
+    # @todo Decide whether to support recursive deletion by accepting the
+    #   :recurse parameter
+    #
+    # @param key [String] The key to be created or updated.
+    # @param [Array<Symbol,String,Hash>] options The options for constructing
+    #   the request
+    # @option options [String] :dc Specify the datacenter to use for the request
+    # @option options [Integer] :cas Specifies to use a Check-And-Set operation.
+    #   This is very useful as a building block for more complex synchronization
+    #   primitives. Unlike PUT, the index must be greater than 0 for Consul to
+    #   take any action: a 0 index will not delete the key. If the index is
+    #   non-zero, the key is only deleted if the index matches the ModifyIndex
+    #   of that key.
+    # @return [KVDELETEResponse]
+    def delete(key, *options)
+      expanded_options = hashify_options(options)
+      query_params = extract_query_params(expanded_options, allowed_params: DELETE_ALLOWED_OPTIONS)
+      response = @http_client.delete(prefix_path(key), query: query_params)
+      KVDELETEResponse.new(response, options: expanded_options)
     end
 
     private

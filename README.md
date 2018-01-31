@@ -44,13 +44,13 @@ Configure:
 Imperium.configure do |config|
   # Connection values can be specified separately
   config.host = 'consul.example.com'
-  config.port = 8585 
+  config.port = 8585
   config.ssl = false
 
   # Or, as a url (this is equivilant to the example above).
   config.url = 'http://consul.example.com:8585'
 
-  confg.token = 'super-sekret-value'
+  config.token = 'super-sekret-value'
 end
 
 # If you want a client that uses some other configuration values without altering
@@ -58,17 +58,17 @@ end
 
 config = Imperium::Configuration.new(url: 'https://other-consul.example.com', token: 'foobar')
 # This client will contact other-consul.example.com rather than the one configured above.
-kv_client = Imperium::KV.new(config) 
+kv_client = Imperium::KV.new(config)
 ```
 
 GET values from the KV store:
 ```
 # Get a single value
-response = Imperium::KV.get('config/single-value', :stale) 
+response = Imperium::KV.get('config/single-value', :stale)
 response.values # => 'qux'
 
 # Get a set of nested values
-response = Imperium::KV.get('config/complex-value', :recurse) 
+response = Imperium::KV.get('config/complex-value', :recurse)
 response.values # => {first: 'value', second: 'value'}
 ```
 

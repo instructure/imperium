@@ -12,10 +12,11 @@ module Imperium
       @driver.receive_timeout = @config.receive_timeout
     end
 
-    def delete(path)
+    def delete(path, query: {})
       wrapping_exceptions do
         url = config.url.join(path)
-        @driver.delete(url)
+        url.query_values = query
+        @driver.delete(url, header: build_request_headers)
       end
     end
 
