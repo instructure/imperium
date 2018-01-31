@@ -32,9 +32,9 @@ module Imperium
         url = config.url.join(path)
         url.query_values = query
         if value.is_a?(String)
-          @driver.put(url, body: value)
+          @driver.put(url, body: value, header: build_request_headers)
         else
-          @driver.put(url, body: JSON.generate(value))
+          @driver.put(url, body: JSON.generate(value), header: build_request_headers)
         end
       end
     end

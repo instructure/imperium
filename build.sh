@@ -1,5 +1,5 @@
 #!/bin/bash
 set -e
 
-docker-compose build
+docker-compose build --pull
 docker-compose run --rm app $@
