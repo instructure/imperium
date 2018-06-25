@@ -127,6 +127,21 @@ module Imperium
       KVDELETEResponse.new(response, options: expanded_options)
     end
 
+    # Perform operation in the transaction
+    #
+    #   This is useful when having a number of statements that must be executed
+    #   together or not at all.
+    #
+    #   @yieldparam [Transaction] a Transaction instance that can be used to
+    #     perform operations in the transaction
+    # @return [TransactionResponse]
+    def transaction
+      tx = Imperium::Transaction.new
+      yield tx
+      response = @http_client.put('v1/txn', tx.body)
+      Imperium::TransactionResponse.new(response)
+    end
+
     private
 
     def construct_nested_hash(key_parts, value)

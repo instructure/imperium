@@ -17,6 +17,8 @@ require 'imperium/kv_delete_response'
 require 'imperium/response'
 require 'imperium/service'
 require 'imperium/service_check'
+require 'imperium/transaction'
+require 'imperium/transaction_response'
 require 'imperium/version'
 
 module Imperium

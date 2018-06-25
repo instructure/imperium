@@ -99,4 +99,21 @@ RSpec.describe 'KV store working w/ a real consul instance', :integration do
       expect(get_response).to be_a Net::HTTPNotFound
     end
   end
+
+  describe 'Transactions' do
+    KVS = 3.times.each_with_object({}) { |i, h| h["key-#{i}"] = i.to_s }.freeze
+
+    after(:all) do
+      KVS.each { |k, v| Imperium::KV.default_client.delete(k) }
+    end
+
+    it 'supports the set verb' do
+      client.transaction do |tx|
+        KVS.each { |k, v| tx.set(k, v) }
+      end
+      KVS.each do |k, v|
+        expect(client.get(k).values).to eq v
+      end
+    end
+  end
 end
