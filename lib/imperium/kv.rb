@@ -132,13 +132,18 @@ module Imperium
     #   This is useful when having a number of statements that must be executed
     #   together or not at all.
     #
-    #   @yieldparam [Transaction] a Transaction instance that can be used to
-    #     perform operations in the transaction
+    # @param [Array<Symbol,String,Hash>] options The options for constructing
+    #   the request
+    # @option options [String] :dc Specify the datacenter to use for the request
+    # @yieldparam [Transaction] a Transaction instance that can be used to
+    #   perform operations in the transaction
     # @return [TransactionResponse]
-    def transaction
+    def transaction(*options)
+      expanded_options = hashify_options(options)
+      query_params = extract_query_params(expanded_options)
       tx = Imperium::Transaction.new
       yield tx
-      response = @http_client.put('v1/txn', tx.body)
+      response = @http_client.put('v1/txn', tx.body, query: query_params)
       Imperium::TransactionResponse.new(response)
     end
 

@@ -103,4 +103,34 @@ RSpec.describe Imperium::KV do
       expect(response).to be_a Imperium::KVPUTResponse
     end
   end
+  describe '#transaction(*options)' do
+    let(:body) { "[{\"KV\":{\"Verb\":\"set\",\"Key\":\"foo/bar\",\"Value\":\"YmF6\\n\"}}]" }
+    let(:response) {
+      double(HTTP::Message).tap {|resp| allow(resp).to receive_messages({body: response_body})}
+    }
+    let(:response_body) {"true"}
+
+    before do
+      allow(http_client).to receive(:put)
+                                .with("v1/txn", body, an_instance_of(Hash))
+                                .and_return(response)
+    end
+
+    it 'must add the v1/txn prefix to the key and pass it to the http client as the path' do
+      kv_client.transaction {|tx| tx.set(key, value)}
+      expect(http_client).to have_received(:put).
+          with("v1/txn", body, an_instance_of(Hash))
+    end
+
+    it 'must return a TransactionResponse object' do
+      response = kv_client.transaction {|tx| tx.set(key, value)}
+      expect(response).to be_a Imperium::TransactionResponse
+    end
+
+    it 'must set the dc if passed' do
+      kv_client.transaction({dc: 'test'}) {|tx| tx.set(key, value)}
+      expect(http_client).to have_received(:put).
+          with("v1/txn", body, {query: {dc: 'test'}})
+    end
+  end
 end

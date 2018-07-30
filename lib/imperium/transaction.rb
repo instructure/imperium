@@ -1,7 +1,7 @@
 module Imperium
   # A Transaction support for KV API
   class Transaction
-    # Initializa a new transaction containing an array of
+    # Initaialize a new transaction containing an array of
     # operations
     def initialize
       @operations = []
