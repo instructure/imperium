@@ -38,7 +38,7 @@ module Imperium
       headers['X-Consul-KnownLeader'] == 'true'
     end
 
-    # The time in miliseconds since the contacted server has been in contact
+    # The time in milliseconds since the contacted server has been in contact
     # with the leader.
     #
     # @return [NilClass] When the X-Consul-LastContact header is not present.
@@ -48,6 +48,18 @@ module Imperium
       Integer(headers['X-Consul-LastContact'])
     end
 
+    # The index returned from a request via the X-Consul-Index header.
+    #
+    # @return [NilClass] When the X-Consul-Index header is not present.
+    # @return [Integer]
+    def index
+      return nil unless headers.key?('X-Consul-Index')
+      Integer(headers['X-Consul-Index'])
+    rescue ArgumentError
+      return nil
+    end
+
+    ##
     # A convenience method for checking if the response had a 404 status code.
     def not_found?
       status == 404

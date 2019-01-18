@@ -30,6 +30,22 @@ RSpec.describe Imperium::Response do
     end
   end
 
+  describe 'index' do
+    it 'must return the value from the X-Consul-Index header cast to an integer' do
+      message.http_header.add('X-Consul-Index', '1485002')
+      expect(response.index).to eq 1485002
+    end
+
+    it 'must return nil when the X-Consul-Index header is unset' do
+      expect(response.index).to be_nil
+    end
+
+    it 'must return nil when the X-Consul-Index header exists but cannot be parsed as an integer' do
+      message.http_header.add('X-Consul-Index', 'hello')
+      expect(response.index).to be_nil
+    end
+  end
+
   describe 'translate_addresses?' do
     it 'must return true when the X-Consul-Translate-Addresses header is set' do
       message.http_header.add('X-Consul-Translate-Addresses', 'true')
