@@ -27,7 +27,8 @@ module Imperium
         return @success if defined? @success
         @success = JSON.parse(body)
       rescue JSON::ParserError
-        body.empty? ? @success = false : raise
+        (status == 403 or body.empty?) ?
+          @success = false : raise
       end
     end
   end

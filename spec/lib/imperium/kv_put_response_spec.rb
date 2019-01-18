@@ -18,5 +18,11 @@ RSpec.describe Imperium::KVPUTResponse do
     it 'must return false if the response body is empty' do
       expect(response.success?).to eq false
     end
+
+    it 'must return false if the response status is 403' do
+      message.body << "rpc error: rpc error: Permission denied\n"
+      message.status = 403
+      expect(response.success?).to eq false
+    end
   end
 end
