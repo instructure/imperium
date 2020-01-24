@@ -11,10 +11,18 @@ module Imperium
   # @!attribute [rw] name
   #   @return [String] The check's name in the consul UI, required for
   #     creation, not required to be unique.
-  # @!attribute [rw] script
+  # @!attribute [rw] script (deprecated since consul 1.0)
   #   @return [String] Specifies a script or path to a script to run on Interval
   #     to update the status of the check. If specifying a path, this path must
   #     exist on disk and be readable by the Consul agent.
+  # @!attribute [rw] args
+  #   @return [Array<String>] Specifies command arguments to run to update the
+  #     status of the check. Prior to Consul 1.0, checks used a single Script
+  #     field to define the command to run, and would always run in a shell.
+  #     In Consul 1.0, the Args array was added so that checks can be run
+  #     without a shell. The Script field is deprecated, and you should
+  #     include the shell in the Args to run under a shell,
+  #     eg. "args": ["sh", "-c", "..."].
   # @!attribute [rw] docker_container_id
   #   @return [String] Specifies that the check is a Docker check, and Consul
   #     will evaluate the script every Interval in the given container using the
@@ -81,6 +89,7 @@ module Imperium
       'ID' => :id,
       'Name' => :name,
       'Script' => :script,
+      'Args' => :args,
       'DockerContainerID' => :docker_container_id,
       'Shell' => :shell,
       'Interval' => :interval,
